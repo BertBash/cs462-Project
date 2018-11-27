@@ -27,39 +27,42 @@ int main(){
   MPI_Comm row_comm;
   MPI_Comm col_comm;
   
-  float **A; // Entire row beginning to end
-  float **B; // Entire column beginning to end
-  float **C; // Subsection result
+  float *A_start, *B_start; // Initialize data
+  float *A_chunk; // Entire row chunk beginning to end
+  float *B_chunk; // Entire column chunk beginning to end
+  float *C_chunk; // Subsection result
   
   MPI_Comm_split(MPI_COMM_WORLD, row_comm, rank, &row_comm);
   MPI_Comm_split(MPI_COMM_WORLD, col_comm, rank, &col_comm);
   
   
   //Generate Matricies
-  A = (float**) malloc(sizeof(float*) * num_row);
-  for(i = 0; i < num_row; i++) {
-    A[i] = (float*) malloc(sizeof(float) * 128);
-    for(j = 0; j < 128; j++)
-      A[i][j] = (float) (rand/ (float) RAND_MAX);
+  A_chunk = (float*) malloc(sizeof(float) * num_row * 128);
+  B_chunk = (float*) malloc(sizeof(float) * num_col * 128);
+  C_chunk = (float*) malloc(sizeof(float) * num_row * num_col);
+
+  A_start = (float*) malloc(sizeof(float) * num_row * num_col);
+  B_start = (float*) malloc(sizeof(float) * num_row * num_col);
+ 
+  for(i = 0; i < num_row * num_col; i++) {
+    A_start[i] = (float) (rand/ (float) RAND_MAX);
+    B_start[i] = (float) (rand/ (float) RAND_MAX);
   }
-  B = (float**) malloc(sizeof(float*) * 128);
-  for(i = 0; i < num_row; i++) {
-    B[i] = (float*) malloc(sizeof(float) * num_col);
-    for(j = 0; j < num_col; j++)
-      B[i][j] = (float) (rand/ (float) RAND_MAX);
-  }
-  C = (float**) malloc(sizeof(float*) * num_row);
-  for(i = 0; i < num_row; i++) {
-    C[i] = (float*) malloc(sizeof(float) * num_col);
-  }
+  
+
 
   if(rank == 0)
     cout << "Matricies Set" << endl;
   
   //Communicate
-  
+ 
+  MPI_Alltoall(A_start, num_row * num_col, MPI_FLOAT, A_chunk, num_row * 128, MPI_FLOAT, row_comm);
+  MPI_Alltoall(B_start, num_row * num_col, MPI_FLOAT, B_chunk, num_col * 128, MPI_FLOAT, col_comm);
+
   //Crunch Numbers  
-  
+
+		
+
   
   if(rank == 0)
     cout << "Calculated" << endl;
