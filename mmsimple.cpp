@@ -29,7 +29,7 @@ int main(){
   
   int num_row, num_col, i, j, k, n, m, num_elements;
   num_col = num_row = (128 / sqrt(size));
-  srand(time(NULL)+rank);
+  srand(0);
   
   MPI_Comm row_comm;
   MPI_Comm col_comm;
@@ -42,6 +42,8 @@ int main(){
   MPI_Comm_size(row_comm, &row_size);
   MPI_Comm_size(col_comm, &col_size);
 
+  // Grab timestamp.
+  start_time = MPI_Wtime();
 
   //Generate Matricies
   A_chunk = (float*) malloc(sizeof(float) * num_row * 128);
@@ -53,15 +55,13 @@ int main(){
   if(rank==0) C = (float*) malloc(sizeof(float) * 128 * 128);
  
   for(i = 0; i < num_row * num_col; i++) {
-    A_start[i] = (float) (rand()/ (float) RAND_MAX);
-    B_start[i] = (float) (rand()/ (float) RAND_MAX);
+    A_start[i] = (float) (rand()/ ((float) RAND_MAX / 2)) - 1;
+    B_start[i] = (float) (rand()/ ((float) RAND_MAX / 2)) - 1;
   }
   
   // Get all processors sync'd
   MPI_Barrier(MPI_COMM_WORLD);
 	
-  // Grab timestamp and continue with communication and number crunching.
-  start_time = MPI_Wtime();
 
   
   //Communicate
