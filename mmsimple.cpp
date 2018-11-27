@@ -2,23 +2,26 @@
 #include <cmath>
 #include <mpi.h>
 #include <ctime>
-#include <cstdllib>
+#include <cstdlib>
+#include <cstdio>
 
 using namespace std;
 
 int main(){
   int size, rank;
-  double time;
+  int row_size, row_rank;
+  int col_size, col_rank;
+  double start_time;
   
   MPI_Init(NULL,NULL);
   
-  time = MPI_Wtime();
+  start_time = MPI_Wtime();
   
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  int row_color = rank / sqrt(size);
-  int col_color = rank % sqrt(size);
+  int row_color = rank / (int)sqrt((double)size);
+  int col_color = rank % (int)sqrt((double)size);
   
   int num_row, num_col, i, j;
   num_col = num_row = (128 / sqrt(size));
@@ -32,9 +35,15 @@ int main(){
   float *B_chunk; // Entire column chunk beginning to end
   float *C_chunk; // Subsection result
   
-  MPI_Comm_split(MPI_COMM_WORLD, row_comm, rank, &row_comm);
-  MPI_Comm_split(MPI_COMM_WORLD, col_comm, rank, &col_comm);
+  MPI_Comm_split(MPI_COMM_WORLD, row_color, rank, &row_comm);
+  MPI_Comm_split(MPI_COMM_WORLD, col_color, rank, &col_comm);
   
+  MPI_Comm_rank(row_comm, &row_rank);
+  MPI_Comm_rank(col_comm, &col_rank);
+  MPI_Comm_size(row_comm, &row_size);
+  MPI_Comm_size(col_comm, &col_size);
+
+
   
   //Generate Matricies
   A_chunk = (float*) malloc(sizeof(float) * num_row * 128);
@@ -45,8 +54,8 @@ int main(){
   B_start = (float*) malloc(sizeof(float) * num_row * num_col);
  
   for(i = 0; i < num_row * num_col; i++) {
-    A_start[i] = (float) (rand/ (float) RAND_MAX);
-    B_start[i] = (float) (rand/ (float) RAND_MAX);
+    A_start[i] = (float) (rand()/ (float) RAND_MAX);
+    B_start[i] = (float) (rand()/ (float) RAND_MAX);
   }
   
 
@@ -60,8 +69,8 @@ int main(){
   MPI_Alltoall(B_start, num_row * num_col, MPI_FLOAT, B_chunk, num_col * 128, MPI_FLOAT, col_comm);
 
   //Crunch Numbers  
-
-		
+	
+	printf("(%d/%d)Processor[%d][%d] is on range %d x %d\n", rank, size, row_color, col_color, row_color * num_row, col_color * num_col);
 
   
   if(rank == 0)
