@@ -1,11 +1,13 @@
 #include <iostream>
+#include <cmath>
+#include <mpi.h>
 
 using namespace std;
 
 int main(){
-  int m1[128*128];
-  int m2[128*128];
-  int a[128*128];
+  float m1[128*128];
+  float m2[128*128];
+  float a[128*128];
   int size, rank;
   double time;
   
@@ -16,7 +18,9 @@ int main(){
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  //Geneate Matricies
+	int row_comm = rank / sqrt(size);
+
+  //Generate Matricies
   for(int i = 0; i < 128; i++){
     m1[i*128+i] = 1;
     m2[i*128+i] = 1;
