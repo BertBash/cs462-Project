@@ -76,13 +76,11 @@ int main(){
     for(j = num_col * col_rank, m = 0; j < num_col + num_col * col_rank; j++, m++) {
       C_chunk[m+num_col*n] = 0;
       for(k = 0; k < 128; k++) {
-	C_chunk[m+num_col*n] += A_chunk[num_elements * (k / num_row) + i *
-					num_row + k	% num_row] * B_chunk[num_elements
-									     * (k / num_col)+ j *
-									     num_col + k % num_col];
-			}
+        C_chunk[m+num_col*n] += A_chunk[num_elements * (k / num_row) + i *	num_row + k	% num_row] 
+                              * B_chunk[num_elements * (k / num_col) + j * num_col + k % num_col];
 		}
-	}
+	 }
+  }
   
   MPI_Gather(C_chunk, num_elements, MPI_FLOAT, C, num_elements, MPI_FLOAT, 0, MPI_COMM_WORLD);
   end_time = MPI_Wtime();
