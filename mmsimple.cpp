@@ -14,7 +14,12 @@ int main(){
   double start_time, end_time;
   
   MPI_Init(NULL,NULL);
-  
+
+  float *A_start, *B_start;    // Initialize data
+  float *A_chunk;              // Entire row chunk beginning to end
+  float *B_chunk;              // Entire column chunk beginning to end
+  float *C_chunk;              // Subsection result
+  float *C; // Final matrix
   
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -28,12 +33,6 @@ int main(){
   
   MPI_Comm row_comm;
   MPI_Comm col_comm;
-  
-  float *A_start, *B_start; // Initialize data
-  float *A_chunk; // Entire row chunk beginning to end
-  float *B_chunk; // Entire column chunk beginning to end
-  float *C_chunk; // Subsection result
-  float *C; // Final matrix
   
   MPI_Comm_split(MPI_COMM_WORLD, row_color, rank, &row_comm);
   MPI_Comm_split(MPI_COMM_WORLD, col_color, rank, &col_comm);
@@ -59,14 +58,11 @@ int main(){
   }
   
   // Get all processors sync'd
-	MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
+	
+  // Grab timestamp and continue with communication and number crunching.
+  start_time = MPI_Wtime();
 
-	// Grab timestamp and continue with communication and number crunching.
-	start_time = MPI_Wtime();
-//  if(rank == 0) cout << "Start time: " << start_time << endl;
-
-//  if(rank == 0)
-//    cout << "Matricies Set" << endl;
   
   //Communicate
  
@@ -75,32 +71,25 @@ int main(){
   MPI_Allgather(B_start, num_row * num_col, MPI_FLOAT, B_chunk, num_col * num_row, MPI_FLOAT, col_comm);
 
   //Crunch Numbers  
-  // size * (k / length) + row * length + k % length
   num_elements = num_row * num_col;
-	for(i = num_row * row_rank, n = 0; i < num_row + num_row * row_rank; i++, n++) {
-		for(j = num_col * col_rank, m = 0; j < num_col + num_col * col_rank; j++, m++) {
-			C_chunk[m+num_col*n] = 0;
-			for(k = 0; k < 128; k++) {
-				C_chunk[m+num_col*n] += A_chunk[num_elements * (k / num_row) + i * num_row + k % num_row] 
-											 * B_chunk[num_elements * (k / num_col) + j * num_col + k % num_col];
+  for(i = num_row * row_rank, n = 0; i < num_row + num_row * row_rank; i++, n++) {
+    for(j = num_col * col_rank, m = 0; j < num_col + num_col * col_rank; j++, m++) {
+      C_chunk[m+num_col*n] = 0;
+      for(k = 0; k < 128; k++) {
+	C_chunk[m+num_col*n] += A_chunk[num_elements * (k / num_row) + i *
+					num_row + k	% num_row] * B_chunk[num_elements
+									     * (k / num_col)+ j *
+									     num_col + k % num_col];
 			}
 		}
 	}
   
-//  if(rank == 0)
- //   cout << "Calculated" << endl;
-//	if(rank == 0) cout << "End time: " << (end_time = MPI_Wtime()) << endl;
-	MPI_Gather(C_chunk, num_elements, MPI_FLOAT, C, num_elements, MPI_FLOAT, 0, MPI_COMM_WORLD);
- 	end_time = MPI_Wtime();
-	if(rank == 0) cout << "Elapsed time: " << end_time - start_time << endl;
-  //Check
-//    if(rank == 0)
-//      cout << "Checked" << endl;
+  MPI_Gather(C_chunk, num_elements, MPI_FLOAT, C, num_elements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  end_time = MPI_Wtime();
+  if(rank == 0) cout << "Elapsed time: " << end_time - start_time << endl;
+  
     
   //Finish
-//  if(rank == 0)
-//    cout << "Exiting" << endl;
-    
   MPI_Finalize();
   
   return 0;
