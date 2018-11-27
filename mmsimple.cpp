@@ -33,6 +33,7 @@ int main(){
   float *A_chunk; // Entire row chunk beginning to end
   float *B_chunk; // Entire column chunk beginning to end
   float *C_chunk; // Subsection result
+  float *C; // Final matrix
   
   MPI_Comm_split(MPI_COMM_WORLD, row_color, rank, &row_comm);
   MPI_Comm_split(MPI_COMM_WORLD, col_color, rank, &col_comm);
@@ -50,6 +51,7 @@ int main(){
 
   A_start = (float*) malloc(sizeof(float) * num_row * num_col);
   B_start = (float*) malloc(sizeof(float) * num_row * num_col);
+  if(rank==0) C = (float*) malloc(sizeof(float) * 128 * 128);
  
   for(i = 0; i < num_row * num_col; i++) {
     A_start[i] = (float) (rand()/ (float) RAND_MAX);
@@ -60,11 +62,11 @@ int main(){
 	MPI_Barrier(MPI_COMM_WORLD);
 
 	// Grab timestamp and continue with communication and number crunching.
+	start_time = MPI_Wtime();
+//  if(rank == 0) cout << "Start time: " << start_time << endl;
 
-  if(rank == 0) cout << "Start time: " << (start_time = MPI_Wtime()) << endl;
-
-  if(rank == 0)
-    cout << "Matricies Set" << endl;
+//  if(rank == 0)
+//    cout << "Matricies Set" << endl;
   
   //Communicate
  
@@ -73,7 +75,7 @@ int main(){
   MPI_Allgather(B_start, num_row * num_col, MPI_FLOAT, B_chunk, num_col * num_row, MPI_FLOAT, col_comm);
 
   //Crunch Numbers  
-	// size * (k / length) + row * length + k % length
+  // size * (k / length) + row * length + k % length
   num_elements = num_row * num_col;
 	for(i = num_row * row_rank, n = 0; i < num_row + num_row * row_rank; i++, n++) {
 		for(j = num_col * col_rank, m = 0; j < num_col + num_col * col_rank; j++, m++) {
@@ -85,18 +87,19 @@ int main(){
 		}
 	}
   
-  if(rank == 0)
-    cout << "Calculated" << endl;
-	if(rank == 0) cout << "End time: " << (end_time = MPI_Wtime()) << endl;
-
+//  if(rank == 0)
+ //   cout << "Calculated" << endl;
+ 	end_time = MPI_Wtime();
+//	if(rank == 0) cout << "End time: " << (end_time = MPI_Wtime()) << endl;
+	MPI_Gather(C_chunk, num_elements, MPI_FLOAT, C, num_elements, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	if(rank == 0) cout << "Elapsed time: " << end_time - start_time << endl;
   //Check
-    if(rank == 0)
-      cout << "Checked" << endl;
+//    if(rank == 0)
+//      cout << "Checked" << endl;
     
   //Finish
-  if(rank == 0)
-    cout << "Exiting" << endl;
+//  if(rank == 0)
+//    cout << "Exiting" << endl;
     
   MPI_Finalize();
   
