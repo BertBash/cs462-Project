@@ -89,9 +89,9 @@ int main(){
   
 //  if(rank == 0)
  //   cout << "Calculated" << endl;
- 	end_time = MPI_Wtime();
 //	if(rank == 0) cout << "End time: " << (end_time = MPI_Wtime()) << endl;
 	MPI_Gather(C_chunk, num_elements, MPI_FLOAT, C, num_elements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+ 	end_time = MPI_Wtime();
 	if(rank == 0) cout << "Elapsed time: " << end_time - start_time << endl;
   //Check
 //    if(rank == 0)
