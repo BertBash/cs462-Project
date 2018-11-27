@@ -11,11 +11,10 @@ int main(){
   int size, rank;
   int row_size, row_rank;
   int col_size, col_rank;
-  double start_time;
+  double start_time, end_time;
   
   MPI_Init(NULL,NULL);
   
-  start_time = MPI_Wtime();
   
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -23,7 +22,7 @@ int main(){
   int row_color = rank / (int)sqrt((double)size);
   int col_color = rank % (int)sqrt((double)size);
   
-  int num_row, num_col, i, j;
+  int num_row, num_col, i, j, k, n, m, num_elements;
   num_col = num_row = (128 / sqrt(size));
   srand(time(NULL)+rank);
   
@@ -44,7 +43,6 @@ int main(){
   MPI_Comm_size(col_comm, &col_size);
 
 
-  
   //Generate Matricies
   A_chunk = (float*) malloc(sizeof(float) * num_row * 128);
   B_chunk = (float*) malloc(sizeof(float) * num_col * 128);
@@ -58,24 +56,40 @@ int main(){
     B_start[i] = (float) (rand()/ (float) RAND_MAX);
   }
   
+  // Get all processors sync'd
+	MPI_Barrier(MPI_COMM_WORLD);
 
+	// Grab timestamp and continue with communication and number crunching.
+
+  if(rank == 0) cout << "Start time: " << (start_time = MPI_Wtime()) << endl;
 
   if(rank == 0)
     cout << "Matricies Set" << endl;
   
   //Communicate
  
-  MPI_Alltoall(A_start, num_row * num_col, MPI_FLOAT, A_chunk, num_row * 128, MPI_FLOAT, row_comm);
-  MPI_Alltoall(B_start, num_row * num_col, MPI_FLOAT, B_chunk, num_col * 128, MPI_FLOAT, col_comm);
+  // Each process is sending their A and B (horizontal for A, vertical for B
+  MPI_Allgather(A_start, num_row * num_col, MPI_FLOAT, A_chunk, num_row * num_col, MPI_FLOAT, row_comm);
+  MPI_Allgather(B_start, num_row * num_col, MPI_FLOAT, B_chunk, num_col * num_row, MPI_FLOAT, col_comm);
 
   //Crunch Numbers  
-	
-	printf("(%d/%d)Processor[%d][%d] is on range %d x %d\n", rank, size, row_color, col_color, row_color * num_row, col_color * num_col);
-
+	// size * (k / length) + row * length + k % length
+  num_elements = num_row * num_col;
+	for(i = num_row * row_rank, n = 0; i < num_row + num_row * row_rank; i++, n++) {
+		for(j = num_col * col_rank, m = 0; j < num_col + num_col * col_rank; j++, m++) {
+			C_chunk[m+num_col*n] = 0;
+			for(k = 0; k < 128; k++) {
+				C_chunk[m+num_col*n] += A_chunk[num_elements * (k / num_row) + i * num_row + k % num_row] 
+											 * B_chunk[num_elements * (k / num_col) + j * num_col + k % num_col];
+			}
+		}
+	}
   
   if(rank == 0)
     cout << "Calculated" << endl;
+	if(rank == 0) cout << "End time: " << (end_time = MPI_Wtime()) << endl;
 
+	if(rank == 0) cout << "Elapsed time: " << end_time - start_time << endl;
   //Check
     if(rank == 0)
       cout << "Checked" << endl;
