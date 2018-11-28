@@ -9,6 +9,7 @@
 using namespace std;
 
 int main(){
+  float *a, *b, *c;
   int size, rank;
   int row_size, row_rank;
   int col_size, col_rank;
@@ -29,6 +30,22 @@ int main(){
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
+  if(rank == 0){
+    a = (float *) malloc(sizeof(float)*128*128);
+    b = (float *) malloc(sizeof(float)*128*128);
+    c = (float *) malloc(sizeof(float)*128*128);
+      
+    srand(-1337); 
+    //Popuate the matrixes with random numbers between 0 and 1.
+    for(int i = 0; i < 128; i++){
+      for(int j = 0; j <128; j++){
+	a[i*128+j] = (float) (rand() / ((float) RAND_MAX / 2)) - 1;
+	b[i*128+j] = (float) (rand() / ((float) RAND_MAX / 2)) - 1;
+	c[i*128+j] = 0;
+      }
+    }
+  }
+  
   int sqrt_p = sqrt(size);
   int row_color = rank / sqrt_p;
   int col_color = rank % sqrt_p;
@@ -42,7 +59,6 @@ int main(){
   MPI_Comm_split(MPI_COMM_WORLD, row_color, rank, &row_comm);
   MPI_Comm_split(MPI_COMM_WORLD, col_color, rank, &col_comm);
   
-
 
   MPI_Comm_rank(row_comm, &row_rank);
   MPI_Comm_rank(col_comm, &col_rank);
@@ -77,10 +93,12 @@ int main(){
   // Get all processors sync'd
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Status junk;
+  
   // Grab timestamp and continue with communication and number crunching.
   start_time = MPI_Wtime();
   int sending_to = ((col_color < row_color) ? rank - row_color + sqrt_p : rank - row_color);
-	// Initial Shift
+
+  // Initial Shift
   if(row_color == 0); // Do nothing
   if(row_color % 2 == 1) { // Odd rows easily able to shift
     // Even rank sends first
@@ -95,15 +113,15 @@ int main(){
   }
   else { // Even rows shift incrementally by 1 (Could be sped up)
     for(i = 0; i < row_color; i++) {
-		if(col_color % 2 == 0) {
-        MPI_Send(A_chunk, num_elements, MPI_FLOAT, ((col_color == 0) ? rank - 1 + sqrt_p : rank - 1), 0, MPI_COMM_WORLD);
+      if(col_color % 2 == 0) {
+	MPI_Send(A_chunk, num_elements, MPI_FLOAT, ((col_color == 0) ? rank - 1 + sqrt_p : rank - 1), 0, MPI_COMM_WORLD);
+	MPI_Recv(A_tmp, num_elements, MPI_FLOAT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &junk);
+      }
+      else {
         MPI_Recv(A_tmp, num_elements, MPI_FLOAT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &junk);
-		}
-		else {
-        MPI_Recv(A_tmp, num_elements, MPI_FLOAT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &junk);
-    	  MPI_Send(A_chunk, num_elements, MPI_FLOAT, ((col_color == 0) ? rank - 1 + sqrt_p : rank - 1), 0, MPI_COMM_WORLD);
-		}
-		memcpy(A_chunk, A_tmp, sizeof(float) * num_elements);
+	MPI_Send(A_chunk, num_elements, MPI_FLOAT, ((col_color == 0) ? rank - 1 + sqrt_p : rank - 1), 0, MPI_COMM_WORLD);
+      }
+      memcpy(A_chunk, A_tmp, sizeof(float) * num_elements);
     }
   }
   sending_to = rank - col_color * sqrt_p;

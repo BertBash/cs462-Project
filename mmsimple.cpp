@@ -11,6 +11,7 @@ int main(){
   int size, rank;
   int row_size, row_rank;
   int col_size, col_rank;
+  float *a, *b, *c;
   double start_time, end_time;
   
   MPI_Init(NULL,NULL);
@@ -24,6 +25,22 @@ int main(){
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
+  if(rank == 0){
+    a = (float *) malloc(sizeof(float)*128*128);
+    b = (float *) malloc(sizeof(float)*128*128);
+    c = (float *) malloc(sizeof(float)*128*128);
+
+    srand(-1337); 
+    //Popuate the matrixes with random numbers between 0 and 1.
+    for(int i = 0; i < 128; i++){
+      for(int j = 0; j <128; j++){
+	a[i*128+j] = (float) (rand() / ((float) RAND_MAX / 2)) - 1;
+	b[i*128+j] = (float) (rand() / ((float) RAND_MAX / 2)) - 1;
+	c[i*128+j] = 0;
+      }
+    }
+  }
+  
   int row_color = rank / (int)sqrt((double)size);
   int col_color = rank % (int)sqrt((double)size);
   
