@@ -12,8 +12,8 @@ int main(){
   //Popuate the matrixes with random numbers between 0 and 1.
   for(int i = 0; i < 128; i++){
     for(int j = 0; j <128; j++){
-      A[i][j] = (rand() / ((float) RAND_MAX / 2)) - 1;
-      B[i][j] = (rand() / ((float) RAND_MAX / 2)) - 1;
+      A[i][j] = (float) (rand() / ((float) RAND_MAX / 2)) - 1;
+      B[i][j] = (float) (rand() / ((float) RAND_MAX / 2)) - 1;
       C[i][j] = 0;
     }
   }
