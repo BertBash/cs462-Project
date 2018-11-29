@@ -115,7 +115,7 @@ int main(){
 
   // Initial Shift
   if(row_color == 0); // Do nothing
-  if(row_color % 2 == 1) { // Odd rows easily able to shift
+  /*else if(row_color % 2 == 1) { // Odd rows easily able to shift
     // Even rank sends first
     if(col_color % 2 == 0) {
       MPI_Send(A_chunk, num_elements, MPI_FLOAT, sending_to, 0, MPI_COMM_WORLD);
@@ -126,7 +126,7 @@ int main(){
     	MPI_Send(A_chunk, num_elements, MPI_FLOAT, sending_to, 0, MPI_COMM_WORLD);
     }
 		memcpy(A_chunk, A_tmp, sizeof(float) * num_elements);
-  }
+  }*/
   else { // Even rows shift incrementally by 1 (Could be sped up)
     for(i = 0; i < row_color; i++) {
       if(col_color % 2 == 0) {
@@ -143,7 +143,7 @@ int main(){
   sending_to = rank - col_color * sqrt_p;
   if(sending_to < 0) sending_to += size;
   if(col_color == 0); // Do nothing
-  if(col_color % 2 == 1) { // Odd rows easily able to shift
+  /*else if(col_color % 2 == 1) { // Odd rows easily able to shift
     // Even rank sends first
     if(row_color % 2 == 0) {
       MPI_Send(B_chunk, num_elements, MPI_FLOAT, sending_to, 0, MPI_COMM_WORLD);
@@ -154,7 +154,7 @@ int main(){
     	MPI_Send(B_chunk, num_elements, MPI_FLOAT, sending_to, 0, MPI_COMM_WORLD);
     }
 		memcpy(B_chunk, B_tmp, sizeof(float) * num_elements);
-  }
+  }*/
   else { // Even rows shift incrementally by 1 (Could be sped up)
     for(i = 0; i < col_color; i++) {
 			if(row_color % 2 == 0) {
