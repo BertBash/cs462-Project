@@ -33,7 +33,7 @@ int main(){
   // Print the output to a file for testing
   for(int i = 0; i < 128; i++) {
   	  for(int j = 0; j < 128; j++) {
-  	  	   output << C[i][j];
+  	  	   output << C[i][j] << " ";
   	  }
   	  output << endl;
   }
