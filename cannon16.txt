@@ -1,20 +1,20 @@
-Elapsed time: 0.0147922
-Elapsed time: 0.035116
-Elapsed time: 0.041899
-Elapsed time: 0.009938
-Elapsed time: 0.023603
-Elapsed time: 0.0205331
-Elapsed time: 0.0285239
-Elapsed time: 0.014776
-Elapsed time: 0.010848
-Elapsed time: 0.0253701
-Elapsed time: 0.0277441
-Elapsed time: 0.0194271
-Elapsed time: 0.0464711
-Elapsed time: 0.0299799
-Elapsed time: 0.027746
-Elapsed time: 0.032757
-Elapsed time: 0.0287788
-Elapsed time: 0.047873
-Elapsed time: 0.0491631
-Elapsed time: 0.033824
+0.0147922
+0.035116
+0.041899
+0.009938
+0.023603
+0.0205331
+0.0285239
+0.014776
+0.010848
+0.0253701
+0.0277441
+0.0194271
+0.0464711
+0.0299799
+0.027746
+0.032757
+0.0287788
+0.047873
+0.0491631
+0.033824
